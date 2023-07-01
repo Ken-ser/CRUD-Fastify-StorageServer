@@ -5,7 +5,7 @@ const fastify = Fastify();
 //test route
 fastify.route({
     method: "GET",
-    path:"/test",
+    path: "/test",
     handler: async (request, reply) => {
         return {
             status: "OK"
@@ -17,7 +17,7 @@ fastify.route({
 try {
     await fastify.listen({ port: 3000 });
     console.log("- Server started");
-  } catch (err) {
+} catch (err) {
     console.log(err);
     process.exit(1);
-  }
+}
