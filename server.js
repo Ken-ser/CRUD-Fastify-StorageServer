@@ -1,16 +1,17 @@
-import Fastify from "fastify";
+import Fastify from "fastify"
+//loads all plugins found in a directory and
+//automatically configures routes matching the folder structure
+import AutoLoad from "@fastify/autoload"
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 
 const fastify = Fastify();
 
-//test route
-fastify.route({
-    method: "GET",
-    path: "/test",
-    handler: async (request, reply) => {
-        return {
-            status: "OK"
-        };
-    }
+//loads plugins and routes folders
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+fastify.register(AutoLoad, {
+    dir: join(__dirname, "routes")
 });
 
 // Run the server
