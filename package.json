@@ -1,4 +1,7 @@
 {
+  "nodemonConfig": {
+    "ignore": ["./db/*.json"]
+  },
   "name": "crud-fastify-storageserver",
   "version": "1.0.0",
   "description": "",
