@@ -16,7 +16,6 @@ async function data(fastify, opts) {
                 for (const o of jsonData) {
                     if (o.key == request.params.key) {
                         //key found
-                        console.log("- Key " + o.key + " found with data: " + o.data);
                         return {
                             key: o.key,
                             data: o.data
@@ -25,7 +24,6 @@ async function data(fastify, opts) {
                 }
                 return { status: "Key not found"}
             } catch (error) {
-                console.error(`Got an error trying to read the file: ${error.message}`);
                 return { status: "error"}
             }
         }
