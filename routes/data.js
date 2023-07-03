@@ -75,6 +75,34 @@ async function data(fastify, opts) {
             return { info: "Key not found" };
         }
     });
+
+    //delete data by key
+    fastify.route({
+        method: "DELETE",
+        path: "/data/:key",
+        handler: async (request, reply) => {
+            //read and JSON-parse file
+            const dbData = JSON.parse(await FS.readFile("./db/data.json"));
+
+            //search key
+            for (let index = 0; index < dbData.length; index++) {
+
+                if (dbData[index].key == request.params.key) {
+                    //key found
+
+                    //delete object
+                    dbData.splice(index, 1);
+
+                    //write entire file
+                    await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
+
+                    return { info: "data deleted" };
+                }
+            }
+            reply.code(404);
+            return { info: "Key not found" };
+        }
+    });
 };
 
 export default FP(data);
