@@ -1,14 +1,14 @@
 [
-  {
-    "key": "esempio1.txt",
-    "data": "1"
-  },
-  {
-    "key": "esempio2.txt",
-    "data": "2"
-  },
-  {
-    "key": "esempio3.txt",
-    "data": "3"
-  }
+    {
+        "key": "esempio1.txt",
+        "data": "1"
+    },
+    {
+        "key": "esempio2.txt",
+        "data": "2"
+    },
+    {
+        "key": "esempio3.txt",
+        "data": "3"
+    }
 ]
