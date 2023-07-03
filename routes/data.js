@@ -6,6 +6,9 @@ async function data(fastify, opts) {
     fastify.route({
         method: "GET",
         path: "/data/:key",
+        onError: async (request, reply, error) => {
+            return { status: error };
+        },
         handler: async (request, reply) => {
             try {
                 //read file
@@ -22,9 +25,10 @@ async function data(fastify, opts) {
                         };
                     }
                 }
+                reply.code(404);
                 return { status: "Key not found"}
             } catch (error) {
-                return { status: "error"}
+                throw new Error("error");
             }
         }
     });
