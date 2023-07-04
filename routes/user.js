@@ -61,6 +61,43 @@ async function user(fastify, opts) {
             return { info: "Wrong email or password" };
         }
     });
+
+    //delete signed in user
+    fastify.route({
+        method: "DELETE",
+        path: "/delete",
+        handler: async (request, reply) => {
+            //get auth header, split by " ", get pos. 1 string
+            const jwt = request.headers.authorization.split(" ")[1];
+            console.log(jwt);
+            //verify token and get token payload
+            const jwtPayload = fastify.jwt.verify(jwt);
+            console.log(jwtPayload);
+
+            //read and JSON.parse file
+            const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
+            
+            //check user
+            for (let index = 0; index < jsonUsers.length; index++) {                
+                //match
+                if (jsonUsers[index].email == jwtPayload.email) {
+                    //delete user
+                    jsonUsers.splice(index, 1);
+                    //write entire file
+                    await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
+                    
+                    return {
+                        info: "User deleted",
+                        email: jwtPayload.email
+                    };
+                }
+            }
+
+            //the token is valid but no user was found
+            reply.code(401);
+            return { info: "Strange token" };
+        }
+    });
 };
 
 export default FP(user);
