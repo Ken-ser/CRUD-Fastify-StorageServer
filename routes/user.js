@@ -1,14 +1,32 @@
 import FP from "fastify-plugin"
+import FS from "fs/promises"
 
-async function user (fastify, opts){
-    //test route
+async function user(fastify, opts) {
+    //sign up user
     fastify.route({
-        method: "GET",
-        path: "/user",
+        method: "POST",
+        path: "/register",
         handler: async (request, reply) => {
-            return {
-                status: "User routes"
-            };
+            const email = request.body.email;
+
+            //read and JSON.parse file
+            const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
+
+            //check if email is available
+            for (const user of jsonUsers) {
+                if (user.email == email) {
+                    reply.code(409);
+                    return { info: "Email already used" };
+                }
+            }
+
+            //add user
+            jsonUsers.splice(0, 0, request.body);
+            //write entire file
+            await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
+
+            reply.code(201);
+            return { info: "Signed up" };
         }
     });
 };

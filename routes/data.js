@@ -7,10 +7,8 @@ async function data(fastify, opts) {
         method: "GET",
         path: "/data/:key",
         handler: async (request, reply) => {
-            //read file
-            const rawData = await FS.readFile("./db/data.json");
-            //JSON parse file
-            const jsonData = JSON.parse(rawData);
+            //read and JSON.parse file
+            const jsonData = JSON.parse(await FS.readFile("./db/data.json"));
 
             //search key
             for (const o of jsonData) {
@@ -34,7 +32,7 @@ async function data(fastify, opts) {
         handler: async (request, reply) => {
             //get body already parsed by fastify
             const bodyData = request.body;
-            //read and JSON parse file
+            //read and JSON.parse file
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
             //add data at position 0
             dbData.splice(0, 0, bodyData);
