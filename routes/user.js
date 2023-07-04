@@ -43,8 +43,17 @@ async function user(fastify, opts) {
 
             //check user
             for (const user of jsonUsers) {
+                //match
                 if (user.email == email && user.password == password) {
-                    return { info: "Signed in" };
+                    //create token
+                    const token = fastify.jwt.sign({ email: email });
+
+                    return {
+                        info: "Signed in",
+                        access_token: token,
+                        token_type: "JWT",
+                        expires_in: "1h"    
+                    };
                 }
             }
 

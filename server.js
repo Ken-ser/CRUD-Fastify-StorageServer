@@ -4,6 +4,7 @@ import Fastify from "fastify"
 import AutoLoad from "@fastify/autoload"
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import JWT from "@fastify/jwt"
 
 const fastify = Fastify({
     logger: {
@@ -14,6 +15,19 @@ const fastify = Fastify({
                 ignore: 'pid,hostname'
             },
         },
+    }
+});
+
+//sets jwt
+fastify.register(JWT, {
+    secret: "UniMi",
+    sign: {
+        algorithm: "HS256",
+        expiresIn: "1h"
+    },
+    decode: {
+        complete: true,
+        checkTyp: "JWT"
     }
 });
 
