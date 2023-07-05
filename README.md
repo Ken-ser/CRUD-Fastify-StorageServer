@@ -15,7 +15,9 @@ Se il login ha successo viene restituito un JWT.
 
 I dati che il client invia sono stringhe codificate in base64 associate a chiavi che le identificano.
 
-Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul file system e autentica gli utenti attraverso un **token JWT**.
+Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul proprio file system e autentica gli utenti attraverso un **token JWT**.
+
+Ogni utente può accedere solo ai dati caricati da lui stesso.
 
 Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica sfrutterò il JWT per includere dei dati aggiuntivi, come in questo caso un **ruolo**.
 
@@ -33,11 +35,17 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 ```json
 [
     {
-        "key": "esempio.txt",
-        "data": "SXMgdGhpcyBhIEpvSm8gsKVmZXJlbmNlPw=="
+        "owner": "example@gmail.com",
+        "files": [
+            {
+                "key": "text.txt",
+                "data": "changed"
+            }
+        ]
     },
     {
-        ...
+        "owner": "...",
+        "files": [...]
     } 
 ]
 ```
@@ -45,7 +53,7 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 ### **Endpoint principali** (Il simbolo * indica che l’API è protetta):
 - User
     - POST /register
-        ```json
+        ```javascript
         //Request body:
         {
             "email": "example@gmail.com",
@@ -55,7 +63,7 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 
         _Registra un nuovo utente_
     - POST /login
-        ```json
+        ```javascript
         //Request body
         {
             "email": "example@gmail.com",
@@ -73,7 +81,7 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 - Data
     - *POST /data
 
-        ```json
+        ```javascript
         //Request body
         { 
             "key": "esempio.txt",

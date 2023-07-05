@@ -7,19 +7,30 @@ async function data(fastify, opts) {
         method: "GET",
         path: "/data/:key",
         handler: async (request, reply) => {
-            //read and JSON.parse file
-            const jsonData = JSON.parse(await FS.readFile("./db/data.json"));
+            //get auth header, split by " ", get pos. 1 string
+            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
+            //verify token and get decoded token payload
+            const jwtPayload = await fastify.verify(jwt);
+            const user = jwtPayload.email;
+            const reqKey = request.params.key;
 
-            //search key
-            for (const o of jsonData) {
-                if (o.key == request.params.key) {
-                    //key found
+            //read and JSON.parse data.json
+            const dbData = JSON.parse(await FS.readFile("./db/data.json"));
+
+            //get user's folder
+            const folder = dbData.find(folder => folder.owner === user);
+
+            //check folder
+            if (folder) {
+                //get file
+                const file = folder.files.find(file => file.key === reqKey);
+                if (file)
                     return {
-                        key: o.key,
-                        data: o.data
+                        key: file.key,
+                        data: file.data
                     };
-                }
             }
+
             reply.code(404);
             return { info: "Key not found" };
         }
@@ -30,12 +41,32 @@ async function data(fastify, opts) {
         method: "POST",
         path: "/data",
         handler: async (request, reply) => {
+            //get auth header, split by " ", get pos. 1 string
+            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
+            //verify token and get decoded token payload
+            const jwtPayload = await fastify.verify(jwt);
+            const user = jwtPayload.email;
+
             //get body already parsed by fastify
             const bodyData = request.body;
-            //read and JSON.parse file
+            //read and JSON.parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
-            //add data at position 0
-            dbData.splice(0, 0, bodyData);
+
+            //get user's folder
+            const folder = dbData.find(folder => folder.owner === user);
+
+            //check folder
+            if (folder) {
+                //add file at position 0
+                folder.files.splice(0, 0, bodyData);
+            }
+            else {
+                //add folder with file
+                dbData.splice(0, 0, {
+                    owner: user,
+                    files: [bodyData]
+                });
+            }
 
             //write entire file
             await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
@@ -50,18 +81,27 @@ async function data(fastify, opts) {
         method: "PATCH",
         path: "/data",
         handler: async (request, reply) => {
+            //get auth header, split by " ", get pos. 1 string
+            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
+            //verify token and get decoded token payload
+            const jwtPayload = await fastify.verify(jwt);
+            const user = jwtPayload.email;
+
             //get body already parsed by fastify
             const bodyData = request.body;
-            //read and JSON-parse file
+            //read and JSON-parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
-            //search key
-            for (const object of dbData) {
-                if (object.key == bodyData.key) {
-                    //key found
+            //get user's folder
+            const folder = dbData.find(folder => folder.owner === user);
 
+            //check folder
+            if (folder) {
+                //get file
+                const file = folder.files.find(file => file.key === bodyData.key);
+                if (file) {
                     //change data
-                    object.data = bodyData.data;
+                    file.data = bodyData.data;
 
                     //write entire file
                     await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
@@ -69,6 +109,7 @@ async function data(fastify, opts) {
                     return { info: "data patched" };
                 }
             }
+
             reply.code(404);
             return { info: "Key not found" };
         }
@@ -79,17 +120,28 @@ async function data(fastify, opts) {
         method: "DELETE",
         path: "/data/:key",
         handler: async (request, reply) => {
-            //read and JSON-parse file
+            //get auth header, split by " ", get pos. 1 string
+            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
+            //verify token and get decoded token payload
+            const jwtPayload = await fastify.verify(jwt);
+            const user = jwtPayload.email;
+
+            //requested key
+            const reqKey = request.params.key;
+
+            //read and JSON-parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
-            //search key
-            for (let index = 0; index < dbData.length; index++) {
+            //get user's folder
+            const folder = dbData.find(folder => folder.owner === user);
 
-                if (dbData[index].key == request.params.key) {
-                    //key found
-
-                    //delete object
-                    dbData.splice(index, 1);
+            //check folder
+            if (folder) {
+                //get file
+                const fileIndex = folder.files.findIndex(file => file.key === reqKey);
+                if (fileIndex != -1) {
+                    //delete file
+                    folder.files.splice(fileIndex, 1);
 
                     //write entire file
                     await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
@@ -97,6 +149,7 @@ async function data(fastify, opts) {
                     return { info: "data deleted" };
                 }
             }
+
             reply.code(404);
             return { info: "Key not found" };
         }
