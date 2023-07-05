@@ -4,7 +4,7 @@ import Fastify from "fastify"
 import AutoLoad from "@fastify/autoload"
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
-import JWT from "@fastify/jwt"
+import JWT from "jsonwebtoken"
 
 const fastify = Fastify({
     logger: {
@@ -18,18 +18,32 @@ const fastify = Fastify({
     }
 });
 
-//sets jwt
-fastify.register(JWT, {
-    secret: "UniMi",
-    sign: {
-        algorithm: "HS256",
-        expiresIn: "1h"
-    },
-    decode: {
-        complete: true,
-        checkTyp: "JWT"
+//attach jwtConf array to the server instance
+fastify.decorate("jwtConf",
+    {
+        secret: "Unimi",
+        signOpt: {
+            algorithm: "HS256",
+            expiresIn: "1h"
+        }
     }
-});
+)
+
+//attach method sign to the server instance
+fastify.decorate("sign", sign)
+
+//attach method verify to the server instance
+fastify.decorate("verify", verify)
+
+async function sign(payload) {
+    const token = JWT.sign(payload, fastify.jwtConf.secret, fastify.jwtConf.signOpt)
+    return token
+}
+
+async function verify(token) {
+    const payload = JWT.verify(token, fastify.jwtConf.secret)
+    return payload
+}
 
 //loads plugins and routes folders
 const __filename = fileURLToPath(import.meta.url);

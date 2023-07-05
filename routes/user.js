@@ -46,13 +46,12 @@ async function user(fastify, opts) {
                 //match
                 if (user.email == email && user.password == password) {
                     //create token
-                    const token = fastify.jwt.sign({ email: email });
-
+                    const token = await fastify.sign({ email: email });
                     return {
                         info: "Signed in",
                         access_token: token,
                         token_type: "JWT",
-                        expires_in: "1h"    
+                        expires_in: "1h"
                     };
                 }
             }
@@ -69,23 +68,21 @@ async function user(fastify, opts) {
         handler: async (request, reply) => {
             //get auth header, split by " ", get pos. 1 string
             const jwt = request.headers.authorization.split(" ")[1];
-            console.log(jwt);
-            //verify token and get token payload
-            const jwtPayload = fastify.jwt.verify(jwt);
-            console.log(jwtPayload);
+            //verify token and get decoded token payload
+            const jwtPayload = await fastify.verify(jwt);
 
             //read and JSON.parse file
             const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
-            
+
             //check user
-            for (let index = 0; index < jsonUsers.length; index++) {                
+            for (let index = 0; index < jsonUsers.length; index++) {
                 //match
                 if (jsonUsers[index].email == jwtPayload.email) {
                     //delete user
                     jsonUsers.splice(index, 1);
                     //write entire file
                     await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
-                    
+
                     return {
                         info: "User deleted",
                         email: jwtPayload.email

@@ -1,6 +1,8 @@
 {
   "nodemonConfig": {
-    "ignore": ["./db/*.json"]
+    "ignore": [
+      "./db/*.json"
+    ]
   },
   "name": "crud-fastify-storageserver",
   "version": "1.0.0",
@@ -19,10 +21,10 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/autoload": "^5.7.1",
-    "@fastify/jwt": "^7.2.0",
     "fastify": "^4.19.0",
     "fastify-plugin": "^4.5.0",
     "fluent-json-schema": "^4.1.0",
+    "jsonwebtoken": "^9.0.0",
     "nodemon": "^2.0.22",
     "pino-pretty": "^10.0.0"
   }
