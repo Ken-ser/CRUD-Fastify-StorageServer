@@ -9,24 +9,30 @@ Le password vengono salvate dal server in un file JSON ([**users.json**](#strutt
 
 In fase di login vengono confrontati gli hash della password passata dal client e l’hash salvato in modo da verificare la correttezza della password.
 
-Se il login ha successo viene restituito un JWT.
+Se il login ha successo viene restituito un [**JWT**](#struttura-del-jwt).
 
 ### **Storage**
 
 I dati che il client invia sono stringhe codificate in base64 associate a chiavi che le identificano.
 
-Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul proprio file system e autentica gli utenti attraverso un **token JWT**.
+Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul proprio file system e autentica gli utenti attraverso un JWT.
 
 Ogni utente può accedere solo ai dati caricati da lui stesso.
 
-Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica sfrutterò il JWT per includere dei dati aggiuntivi, come in questo caso un **ruolo**.
+Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del JWT).
 
 ### **Struttura del file users.json:**
 ```json
 [
     {
         "email": "example@gmail.com",
-        "password": "password"
+        "password": "password",
+        "role": "u"
+    },
+    {
+        "email": "admin",
+        "password": "admin",
+        "role": "su"
     }
 ]
 ```
@@ -45,51 +51,86 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
     },
     {
         "owner": "...",
-        "files": [...]
+        "files": []
     } 
 ]
 ```
 
-### **Endpoint principali** (Il simbolo * indica che l’API è protetta):
+### **Struttura del JWT:**
+<sub>Header</sub>
+```json
+{
+    "alg": "HS256",
+    "typ": "JWT"
+}
+```
+<sub>Payload</sub>
+```json
+{
+    "email": "example@gmail.com",
+    "role": "u",
+    "iat": 1688583161,
+    "exp": 1688586761
+}
+```
+<sub>Signature</sub>
+```js
+HMACSHA256(
+    base64UrlEncode(header) + "." +
+    base64UrlEncode(payload),
+    secret
+)
+```
+
+### **Endpoint principali:** &emsp;<sub>(Il simbolo * indica che l’API è protetta)</sub>
 - User
-    - POST /register
-        ```javascript
-        //Request body:
-        {
-            "email": "example@gmail.com",
-            "password": "password"
-        }
-        ```
+    - POST /register&emsp;
 
         _Registra un nuovo utente_
-    - POST /login
-        ```javascript
-        //Request body
+
+        <sub>Request body</sub>
+        ```json
         {
             "email": "example@gmail.com",
             "password": "password"
         }
         ```
+
+    - POST /login
+        
         _Effettua login e riceve in risposta il JWT_
-    - *DELETE /delete
+
+        <sub>Request body</sub>
+        ```json
+        {
+            "email": "example@gmail.com",
+            "password": "password"
+        }
         ```
-        //HTTP Header
+    - *DELETE /delete
+        
+        _Elimina l’utente legato al JWT inviato al server_
+
+        <sub>HTTP header</sub>
+        ```
         Authorization: Bearer <token>
         ```
+
     
-        _Elimina l’utente legato al JWT fornito al server_
 - Data
     - *POST /data
+        
+        _Carica dei dati nuovi_
 
-        ```javascript
-        //Request body
+        <sub>Request body</sub>
+
+        ```json
         { 
             "key": "esempio.txt",
             "data": "SXMgdGhpcyBhIEpvSm8gsKVmZXJlbmNlPw=="
         }
         ```
 
-        _Carica dei dati nuovi_
     - *GET /data/:key
     
         _Ritorna i dati corrispondenti alla chiave_

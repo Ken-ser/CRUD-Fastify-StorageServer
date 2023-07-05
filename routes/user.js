@@ -13,15 +13,16 @@ async function user(fastify, opts) {
             const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
 
             //check if email is available
-            for (const user of jsonUsers) {
-                if (user.email == email) {
-                    reply.code(409);
-                    return { info: "Email already used" };
-                }
+            if (jsonUsers.find(user => user.email == email)) {
+                reply.code(409);
+                return { info: "Email already used" };
             }
 
+            //add "role" key with "u" value 
+            request.body.role = "u";
             //add user
             jsonUsers.splice(0, 0, request.body);
+
             //write entire file
             await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
 
@@ -46,7 +47,7 @@ async function user(fastify, opts) {
                 //match
                 if (user.email == email && user.password == password) {
                     //create token
-                    const token = await fastify.sign({ email: email });
+                    const token = await fastify.sign({ email: email, role: user.role });
                     return {
                         info: "Signed in",
                         access_token: token,
