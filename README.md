@@ -1,19 +1,19 @@
 # CRUD-Fastify-StorageServer
-## Server di storage con API CRUD e sistema di login JWT utilizzando Node.js e il framework Fastify
+Server di storage con **API CRUD** e sistema di autenticazione **JWT** utilizzando **Node.js** e il framework **Fastify**
+
+### **Sign-up e Sign-in**
+
 Gli utenti si possono registrare con e-mail e password.
 
-Le password vengono salvate dal server in un JSON dopo essere state “hashate” (ad esempio con SHA256). 
+Le password vengono salvate dal server in un file JSON (**users.json**) dopo essere state “hashate” (ad esempio con SHA256). 
 
 In fase di login vengono confrontati gli hash della password passata dal client e l’hash salvato in modo da verificare la correttezza della password.
 
-I dati che il client invia sono stringhe codificate in base64 associate a chiavi che le identificano, per esempio il body della chiamata "POST /data" sarà:
+Se il login ha successo viene restituito un JWT.
 
-```json
-{ 
-    "key": "esempio.txt",
-    "data": "SXMgdGhpcyBhIEpvSm8gsKVmZXJlbmNlPw=="
-}
-```
+### **Storage**
+
+I dati che il client invia sono stringhe codificate in base64 associate a chiavi che le identificano.
 
 Il server salva i dati inviati dal client in un file JSON (**db.json**) sul file system e autentica gli utenti attraverso un **token JWT**.
 
@@ -35,17 +35,42 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 ### **Endpoint principali** (Il simbolo * indica che l’API è protetta):
 - User
     - POST /register
-    
+        ```json
+        //Request body:
+        {
+            "email": "example@gmail.com",
+            "password": "password"
+        }
+        ```
+
         _Registra un nuovo utente_
     - POST /login
-    
+        ```json
+        //Request body:
+        {
+            "email": "example@gmail.com",
+            "password": "password"
+        }
+        ```
         _Effettua login e riceve in risposta il JWT_
     - *DELETE /delete
+        ```json
+        //HTTP Header
+        Authorization: Bearer <token>
+        ```
     
-        _Elimina l’utente attualmente loggato_
+        _Elimina l’utente legato al JWT fornito al server_
 - Data
     - *POST /data
-    
+
+        ```json
+        //Request body
+        { 
+            "key": "esempio.txt",
+            "data": "SXMgdGhpcyBhIEpvSm8gsKVmZXJlbmNlPw=="
+        }
+        ```
+
         _Carica dei dati nuovi_
     - *GET /data/:key
     
