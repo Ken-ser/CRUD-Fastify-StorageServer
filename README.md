@@ -41,22 +41,22 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 ```json
 [
     {
-        "owner": "example@gmail.com",
-        "files": [
-            {
-                "key": "text.txt",
-                "data": "changed"
-            }
-        ]
+        "key": "text.txt",
+        "data": "data",
+        "owner": "example@gmail.com"
     },
     {
-        "owner": "...",
-        "files": []
-    } 
+        "key": "...",
+        "data": "...",
+        "owner": "..." 
+    }
 ]
 ```
 
 ### **Struttura del JWT:**
+<sub>Token (example)</sub>
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZSI6InUiLCJpYXQiOjE2ODg1ODMxNjEsImV4cCI6MTY4ODU4Njc2MX0.64iYFRZA2QHGVQx-gKAJWYSDVzYBvY8FZvQt1KW9CXY
+
 <sub>Header</sub>
 ```json
 {

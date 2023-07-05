@@ -1,7 +1,9 @@
 {
   "nodemonConfig": {
     "ignore": [
-      "./db/*.json"
+      "./db/*.json",
+      "./.gitignore",
+      "./README.md"
     ]
   },
   "name": "crud-fastify-storageserver",

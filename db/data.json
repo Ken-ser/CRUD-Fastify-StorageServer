@@ -1,11 +1,7 @@
 [
     {
-        "owner": "example@gmail.com",
-        "files": [
-            {
-                "key": "text.txt",
-                "data": "changed"
-            }
-        ]
+        "key": "text.txt",
+        "data": "data",
+        "owner": "example@gmail.com"
     }
 ]

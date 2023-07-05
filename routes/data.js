@@ -17,22 +17,28 @@ async function data(fastify, opts) {
             //read and JSON.parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
-            //get user's folder
-            const folder = dbData.find(folder => folder.owner === user);
+            //get file
+            const file = dbData.find(file => file.key == reqKey);
 
-            //check folder
-            if (folder) {
-                //get file
-                const file = folder.files.find(file => file.key === reqKey);
-                if (file)
+            //if file exists
+            if (file) {
+                //check permission, owner or super user
+                if (user == file.owner || jwtPayload.role == "su") {
                     return {
                         key: file.key,
                         data: file.data
                     };
+                }
+                else {
+                    reply.code(403);
+                    return { info: "Permission denied" };
+                }
+            }
+            else {
+                reply.code(404);
+                return { info: "Key not found" };
             }
 
-            reply.code(404);
-            return { info: "Key not found" };
         }
     });
 
@@ -52,21 +58,17 @@ async function data(fastify, opts) {
             //read and JSON.parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
-            //get user's folder
-            const folder = dbData.find(folder => folder.owner === user);
+            //check if key is already used
+            const file = dbData.find(file => file.key === bodyData.key);
+            if (file) {
+                reply.code(409);
+                return { info: "Key already used" };
+            }
 
-            //check folder
-            if (folder) {
-                //add file at position 0
-                folder.files.splice(0, 0, bodyData);
-            }
-            else {
-                //add folder with file
-                dbData.splice(0, 0, {
-                    owner: user,
-                    files: [bodyData]
-                });
-            }
+            //add owner to new file
+            bodyData.owner = user;
+            //add file
+            dbData.splice(0, 0, bodyData);
 
             //write entire file
             await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
@@ -92,14 +94,11 @@ async function data(fastify, opts) {
             //read and JSON-parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
-            //get user's folder
-            const folder = dbData.find(folder => folder.owner === user);
-
-            //check folder
-            if (folder) {
-                //get file
-                const file = folder.files.find(file => file.key === bodyData.key);
-                if (file) {
+            //check if file exists
+            const file = dbData.find(file => file.key === bodyData.key);
+            if (file) {
+                //check permission, owner or superuser
+                if (file.owner == user || jwtPayload.role == "su") {
                     //change data
                     file.data = bodyData.data;
 
@@ -107,6 +106,10 @@ async function data(fastify, opts) {
                     await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
 
                     return { info: "data patched" };
+                }
+                else {
+                    reply.code(403);
+                    return { info: "Permission Denied" };
                 }
             }
 
@@ -132,21 +135,24 @@ async function data(fastify, opts) {
             //read and JSON-parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
-            //get user's folder
-            const folder = dbData.find(folder => folder.owner === user);
+            //get file index
+            const fileIndex = dbData.findIndex(file => file.key === reqKey);
 
-            //check folder
-            if (folder) {
-                //get file
-                const fileIndex = folder.files.findIndex(file => file.key === reqKey);
-                if (fileIndex != -1) {
+            //check file index
+            if (fileIndex != -1) {
+                //check permission, owner or superuser
+                if (dbData[fileIndex].owner == user || jwtPayload.role == "su") {
                     //delete file
-                    folder.files.splice(fileIndex, 1);
+                    dbData.splice(fileIndex, 1);
 
                     //write entire file
                     await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
 
                     return { info: "data deleted" };
+                }
+                else {
+                    reply.code(403);
+                    return { info: "Permission denied" };
                 }
             }
 
