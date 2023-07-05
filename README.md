@@ -5,7 +5,7 @@ Server di storage con **API CRUD** e sistema di autenticazione **JWT** utilizzan
 
 Gli utenti si possono registrare con e-mail e password.
 
-Le password vengono salvate dal server in un file JSON (**users.json**) dopo essere state “hashate” (ad esempio con SHA256). 
+Le password vengono salvate dal server in un file JSON ([**users.json**](#struttura-del-file-usersjson)) dopo essere state “hashate” (ad esempio con SHA256). 
 
 In fase di login vengono confrontati gli hash della password passata dal client e l’hash salvato in modo da verificare la correttezza della password.
 
@@ -15,11 +15,21 @@ Se il login ha successo viene restituito un JWT.
 
 I dati che il client invia sono stringhe codificate in base64 associate a chiavi che le identificano.
 
-Il server salva i dati inviati dal client in un file JSON (**db.json**) sul file system e autentica gli utenti attraverso un **token JWT**.
+Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul file system e autentica gli utenti attraverso un **token JWT**.
 
 Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica sfrutterò il JWT per includere dei dati aggiuntivi, come in questo caso un **ruolo**.
 
-### **Struttura del file db.json:**
+### **Struttura del file users.json:**
+```json
+[
+    {
+        "email": "example@gmail.com",
+        "password": "password"
+    }
+]
+```
+
+### **Struttura del file data.json:**
 ```json
 [
     {
@@ -46,7 +56,7 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
         _Registra un nuovo utente_
     - POST /login
         ```json
-        //Request body:
+        //Request body
         {
             "email": "example@gmail.com",
             "password": "password"
@@ -54,7 +64,7 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
         ```
         _Effettua login e riceve in risposta il JWT_
     - *DELETE /delete
-        ```json
+        ```
         //HTTP Header
         Authorization: Bearer <token>
         ```
@@ -82,10 +92,10 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
     
         _Elimina i dati corrispondenti alla chiave_	
 
-### **Plugin necessari**:
+### **Plugin impiegati**:
 - fluent-json-schema
 - fastify-plugin
-- fastify-jwt
+- jsonwebtoken
 - fastify-autoload 
 
 
