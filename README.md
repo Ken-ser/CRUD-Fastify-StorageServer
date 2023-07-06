@@ -5,9 +5,9 @@ Server di storage con **API CRUD** e sistema di autenticazione **JWT** utilizzan
 
 Gli utenti si possono registrare con e-mail e password.
 
-Le password vengono salvate dal server in un file JSON ([**users.json**](#struttura-del-file-usersjson)) dopo essere state “hashate” (ad esempio con SHA256). 
+Il server unisce la password ad un "salt" (valore randomico), calcola il digest dell'unione con un algoritmo di hash (es. SHA256) e lo salva, insieme al salt, in un file JSON ([**users.json**](#struttura-del-file-usersjson)). 
 
-In fase di login vengono confrontati gli hash della password passata dal client e l’hash salvato in modo da verificare la correttezza della password.
+In fase di login viene confrontato l'hash della password passata dal client e l’hash salvato in modo da verificare la correttezza della password.
 
 Se il login ha successo viene restituito un [**JWT**](#struttura-del-jwt).
 
@@ -26,12 +26,14 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 [
     {
         "email": "example@gmail.com",
-        "password": "password",
+        "password": "c79d74c3476e096c2495c538c4dc5302b81",
+        "salt": "7587646c2b73",
         "role": "u"
     },
     {
         "email": "admin",
-        "password": "admin",
+        "password": "7a1d0a78b9f08b8b70b1196f56e0d73e3af",
+        "salt": "285673ee4558",
         "role": "su"
     }
 ]
@@ -142,9 +144,10 @@ HMACSHA256(
         _Elimina i dati corrispondenti alla chiave_	
 
 ### **Plugin impiegati**:
-- fluent-json-schema
 - fastify-plugin
-- jsonwebtoken
 - fastify-autoload 
+- fluent-json-schema
+- jsonwebtoken
+- node-forge
 
 
