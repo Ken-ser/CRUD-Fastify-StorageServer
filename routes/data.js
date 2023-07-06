@@ -55,6 +55,13 @@ async function data(fastify, opts) {
 
             //get body already parsed by fastify
             const bodyData = request.body;
+
+            //check valid base64 string
+            if (! await fastify.isBase64(bodyData.data)) {
+                reply.code(400);
+                return { info: "Data must be base64 string" };
+            }
+
             //read and JSON.parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
@@ -91,6 +98,13 @@ async function data(fastify, opts) {
 
             //get body already parsed by fastify
             const bodyData = request.body;
+
+            //check valid base64 string
+            if (! await fastify.isBase64(bodyData.data)) {
+                reply.code(400);
+                return { info: "Data must be base64 string" };
+            }
+
             //read and JSON-parse data.json
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 

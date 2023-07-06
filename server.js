@@ -35,6 +35,9 @@ fastify.decorate("sign", sign)
 //attach method verify to the server instance
 fastify.decorate("verify", verify)
 
+//attach method isBase64 to the server instance
+fastify.decorate("isBase64", isBase64)
+
 async function sign(payload) {
     const token = JWT.sign(payload, fastify.jwtConf.secret, fastify.jwtConf.signOpt)
     return token
@@ -43,6 +46,14 @@ async function sign(payload) {
 async function verify(token) {
     const payload = JWT.verify(token, fastify.jwtConf.secret)
     return payload
+}
+
+async function isBase64(str) {
+    try {
+        return btoa(atob(str)) == str;
+    } catch (err) {
+        return false;
+    }
 }
 
 //loads plugins and routes folders
