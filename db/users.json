@@ -1,12 +1,14 @@
 [
     {
         "email": "example@gmail.com",
-        "password": "password",
+        "password": "c79d74c3476e096c2495c538c4dc5302b81b457bfd3681c109b3aa08a0c83225",
+        "salt": "7587646c2b7351b2cacf53a61f08ded1",
         "role": "u"
     },
     {
         "email": "admin",
-        "password": "admin",
+        "password": "7a1d0a78b9f08b8b70b1196f56e0d73e3afad587fa3b247b5e4bca5c6c5ba0f4",
+        "salt": "285673ee45585824a2d1c736bf39053e",
         "role": "su"
     }
 ]

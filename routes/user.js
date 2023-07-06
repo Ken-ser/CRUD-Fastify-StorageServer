@@ -1,5 +1,6 @@
 import FP from "fastify-plugin"
 import FS from "fs/promises"
+import NF from "node-forge"
 
 async function user(fastify, opts) {
     //sign up user
@@ -17,6 +18,17 @@ async function user(fastify, opts) {
                 reply.code(409);
                 return { info: "Email already used" };
             }
+
+            //Generate salt
+            const saltBytes = NF.random.getBytesSync(16);
+            const salt = NF.util.bytesToHex(saltBytes);
+            //add "salt" key
+            request.body.salt = salt;
+
+            //Generate digest
+            const hashInst = NF.md.sha256.create();
+            hashInst.update(request.body.password + salt);
+            request.body.password = hashInst.digest().toHex();
 
             //add "role" key with "u" value 
             request.body.role = "u";
@@ -42,18 +54,28 @@ async function user(fastify, opts) {
             //read and JSON.parse file
             const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
 
-            //check user
+            //search user
             for (const user of jsonUsers) {
-                //match
-                if (user.email == email && user.password == password) {
-                    //create token
-                    const token = await fastify.sign({ email: email, role: user.role });
-                    return {
-                        info: "Signed in",
-                        access_token: token,
-                        token_type: "JWT",
-                        expires_in: "1h"
-                    };
+                if (user.email == email) {
+                    //Generate digest
+                    const hashInst = NF.md.sha256.create();
+                    hashInst.update(password + user.salt);
+                    const hashedPw = hashInst.digest().toHex();
+
+                    //check password
+                    if (hashedPw == user.password) {
+                        //create token
+                        const token = await fastify.sign({ email: email, role: user.role });
+
+                        return {
+                            info: "Signed in",
+                            access_token: token,
+                            token_type: "JWT",
+                            expires_in: "1h"
+                        };
+                    }
+                    else
+                        break;
                 }
             }
 
@@ -75,20 +97,19 @@ async function user(fastify, opts) {
             //read and JSON.parse file
             const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
 
-            //check user
-            for (let index = 0; index < jsonUsers.length; index++) {
-                //match
-                if (jsonUsers[index].email == jwtPayload.email) {
-                    //delete user
-                    jsonUsers.splice(index, 1);
-                    //write entire file
-                    await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
+            //find user index
+            const userIndex = jsonUsers.findIndex(user => user.email == jwtPayload.email);
+            //match
+            if (userIndex != -1) {
+                //delete user
+                jsonUsers.splice(userIndex, 1);
+                //write entire file
+                await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
 
-                    return {
-                        info: "User deleted",
-                        email: jwtPayload.email
-                    };
-                }
+                return {
+                    info: "User deleted",
+                    email: jwtPayload.email
+                };
             }
 
             //the token is valid but no user was found
