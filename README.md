@@ -15,11 +15,11 @@ Se il login ha successo viene restituito un [**JWT**](#struttura-del-jwt).
 
 I dati che il client invia sono stringhe codificate in base64 associate a chiavi che le identificano.
 
-Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul proprio file system e autentica gli utenti attraverso un JWT.
+Il server salva i dati inviati dal client in un file JSON ([**data.json**](#struttura-del-file-datajson)) sul proprio file system e autorizza gli utenti attraverso un JWT.
 
 Ogni utente può accedere solo ai dati caricati da lui stesso.
 
-Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del JWT).
+Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del [**JWT**](#struttura-del-jwt)).
 
 ### **Struttura del file users.json:**
 ```json
@@ -84,64 +84,100 @@ HMACSHA256(
 )
 ```
 
-### **Endpoint principali:** &emsp;<sub>(Il simbolo * indica che l’API è protetta)</sub>
-- User
-    - POST /register&emsp;
+### **Endpoint principali:**
 
-        _Registra un nuovo utente_
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | POST | /register | _Registra un nuovo utente_ |
 
-        <sub>Request body</sub>
-        ```json
-        {
-            "email": "example@gmail.com",
-            "password": "password"
-        }
-        ```
+    <sub>Request body</sub>
+    ```json
+    {
+        "email": "example@gmail.com",
+        "password": "password"
+    }
+    ```
 
-    - POST /login
-        
-        _Effettua login e riceve in risposta il JWT_
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | POST | /login | _Effettua login e riceve in risposta il JWT_ |
 
-        <sub>Request body</sub>
-        ```json
-        {
-            "email": "example@gmail.com",
-            "password": "password"
-        }
-        ```
-    - *DELETE /delete
-        
-        _Elimina l’utente legato al JWT inviato al server_
+    <sub>Request body</sub>
+    ```json
+    {
+        "email": "example@gmail.com",
+        "password": "password"
+    }
+    ```
 
-        <sub>HTTP header</sub>
-        ```
-        Authorization: Bearer <token>
-        ```
+    <sub>Response body</sub>
+    ```json
+    {
+        "info": "Signed in",
+        "access_token": "...",
+        "token_type": "JWT",
+        "expires_in": "1h"
+    }
+    ```
 
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | DELETE | /delete | _Elimina l’utente legato al JWT inviato al server_ |
+
+    <sub>HTTP header</sub>
+    ```
+    Authorization: Bearer <token>
+    ```
+
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | POST | /data | _Carica dei dati nuovi_ |
+
+    <sub>Request body</sub>
+    ```json
+    { 
+        "key": "esempio.txt",
+        "data": "SXMgdGhpcyBhIEpvSm8gsKVmZXJlbmNlPw=="
+    }
+    ```
+
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | GET | /data/:key | _Ritorna i dati corrispondenti alla chiave_ |
+
+    <sub>Response body</sub>
+    ```json
+    {
+        "info": "Data found",
+        "key": "text.txt",
+        "data": "data"
+    }
+    ```
+
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | PATCH | /data/:key | _Aggiorna i dati corrispondenti alla chiave_ |
+
+    <sub>Request body</sub>
+    ```json
+    { 
+        "data": "Y2hhbmdlZA=="
+    }
+    ```
+    <sub>Response body</sub>
+    ```json
+    {
+        "info": "Data patched",
+        "key": "text.txt",
+        "data": "Y2hhbmdlZA=="
+    }
+    ```
     
-- Data
-    - *POST /data
-        
-        _Carica dei dati nuovi_
+- | Method | Path | Description |
+    | --- | --- | --- |
+    | DELETE | /data/:key | _Elimina i dati corrispondenti alla chiave_ |
 
-        <sub>Request body</sub>
-
-        ```json
-        { 
-            "key": "esempio.txt",
-            "data": "SXMgdGhpcyBhIEpvSm8gsKVmZXJlbmNlPw=="
-        }
-        ```
-
-    - *GET /data/:key
-    
-        _Ritorna i dati corrispondenti alla chiave_
-    - *PATCH /data/:key
-    
-        _Aggiorna i dati corrispondenti alla chiave_
-    - *DELETE /data/:key
-    
-        _Elimina i dati corrispondenti alla chiave_	
+&emsp;<sub>(Il simbolo * indica che l’API è protetta)</sub>
 
 ### **Plugin impiegati**:
 - fastify-plugin

@@ -12,6 +12,8 @@ async function data(fastify, opts) {
             //verify token and get decoded token payload
             const jwtPayload = await fastify.verify(jwt);
             const user = jwtPayload.email;
+
+            //get key
             const reqKey = request.params.key;
 
             //read and JSON.parse data.json
@@ -25,6 +27,7 @@ async function data(fastify, opts) {
                 //check permission, owner or super user
                 if (user == file.owner || jwtPayload.role == "su") {
                     return {
+                        info: "Data found",
                         key: file.key,
                         data: file.data
                     };
@@ -81,14 +84,14 @@ async function data(fastify, opts) {
             await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
 
             reply.code(201);
-            return { info: "data stored" };
+            return { info: "Data stored" };
         }
     });
 
     //patch data by key
     fastify.route({
         method: "PATCH",
-        path: "/data",
+        path: "/data/:key",
         handler: async (request, reply) => {
             //get auth header, split by " ", get pos. 1 string
             const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
@@ -97,10 +100,12 @@ async function data(fastify, opts) {
             const user = jwtPayload.email;
 
             //get body already parsed by fastify
-            const bodyData = request.body;
+            const newData = request.body.data;
+            //get key
+            const reqKey = request.params.key;
 
             //check valid base64 string
-            if (! await fastify.isBase64(bodyData.data)) {
+            if (! await fastify.isBase64(newData)) {
                 reply.code(400);
                 return { info: "Data must be base64 string" };
             }
@@ -109,17 +114,21 @@ async function data(fastify, opts) {
             const dbData = JSON.parse(await FS.readFile("./db/data.json"));
 
             //check if file exists
-            const file = dbData.find(file => file.key === bodyData.key);
+            const file = dbData.find(file => file.key === reqKey);
             if (file) {
                 //check permission, owner or superuser
                 if (file.owner == user || jwtPayload.role == "su") {
                     //change data
-                    file.data = bodyData.data;
+                    file.data = newData;
 
                     //write entire file
                     await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
 
-                    return { info: "data patched" };
+                    return {
+                        info: "Data patched",
+                        key: file.key,
+                        data: file.data
+                    };
                 }
                 else {
                     reply.code(403);
@@ -162,7 +171,7 @@ async function data(fastify, opts) {
                     //write entire file
                     await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
 
-                    return { info: "data deleted" };
+                    return { info: "Data deleted" };
                 }
                 else {
                     reply.code(403);
