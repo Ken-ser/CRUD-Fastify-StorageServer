@@ -1,17 +1,22 @@
 import FP from "fastify-plugin"
 import FS from "fs/promises"
+import { S } from "fluent-json-schema"
 
 async function data(fastify, opts) {
     //get data by key
     fastify.route({
         method: "GET",
         path: "/data/:key",
+        schema: {
+            headers: { $ref: "authHeader" },
+            response: {
+                "2xx": { $ref: "repGetData" }
+            }
+        },
         handler: async (request, reply) => {
-            //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
-            //verify token and get decoded token payload
-            const jwtPayload = await fastify.verify(jwt);
-            const user = jwtPayload.email;
+            //user data from preValidation hook
+            const user = request.authUser.email;
+            const role = request.authUser.role;
 
             //get key
             const reqKey = request.params.key;
@@ -25,7 +30,7 @@ async function data(fastify, opts) {
             //if file exists
             if (file) {
                 //check permission, owner or super user
-                if (user == file.owner || jwtPayload.role == "su") {
+                if (user == file.owner || role == "su") {
                     return {
                         info: "Data found",
                         key: file.key,
@@ -34,12 +39,12 @@ async function data(fastify, opts) {
                 }
                 else {
                     reply.code(403);
-                    return { info: "Permission denied" };
+                    return new Error("Permission denied");
                 }
             }
             else {
                 reply.code(404);
-                return { info: "Key not found" };
+                return new Error("Key not found");
             }
 
         }
@@ -49,12 +54,13 @@ async function data(fastify, opts) {
     fastify.route({
         method: "POST",
         path: "/data",
+        schema: {
+            headers: { $ref: "authHeader" },
+            body: { $ref: "file" }
+        },
         handler: async (request, reply) => {
-            //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
-            //verify token and get decoded token payload
-            const jwtPayload = await fastify.verify(jwt);
-            const user = jwtPayload.email;
+            //user data from preValidation hook
+            const user = request.authUser.email;
 
             //get body already parsed by fastify
             const bodyData = request.body;
@@ -62,7 +68,7 @@ async function data(fastify, opts) {
             //check valid base64 string
             if (! await fastify.isBase64(bodyData.data)) {
                 reply.code(400);
-                return { info: "Data must be base64 string" };
+                return new Error("Data must be base64 string");
             }
 
             //read and JSON.parse data.json
@@ -72,7 +78,7 @@ async function data(fastify, opts) {
             const file = dbData.find(file => file.key === bodyData.key);
             if (file) {
                 reply.code(409);
-                return { info: "Key already used" };
+                return new Error("Key already used");
             }
 
             //add owner to new file
@@ -92,12 +98,17 @@ async function data(fastify, opts) {
     fastify.route({
         method: "PATCH",
         path: "/data/:key",
+        schema: {
+            headers: { $ref: "authHeader" },
+            body: S.object().prop("data", S.ref("file#/properties/data")).required(),
+            response: {
+                "2xx": { $ref: "repGetData" }
+            }
+        },
         handler: async (request, reply) => {
-            //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
-            //verify token and get decoded token payload
-            const jwtPayload = await fastify.verify(jwt);
-            const user = jwtPayload.email;
+            //user data from preValidation hook
+            const user = request.authUser.email;
+            const role = request.authUser.role;
 
             //get body already parsed by fastify
             const newData = request.body.data;
@@ -107,7 +118,7 @@ async function data(fastify, opts) {
             //check valid base64 string
             if (! await fastify.isBase64(newData)) {
                 reply.code(400);
-                return { info: "Data must be base64 string" };
+                return new Error("Data must be base64 string");
             }
 
             //read and JSON-parse data.json
@@ -117,7 +128,7 @@ async function data(fastify, opts) {
             const file = dbData.find(file => file.key === reqKey);
             if (file) {
                 //check permission, owner or superuser
-                if (file.owner == user || jwtPayload.role == "su") {
+                if (file.owner == user || role == "su") {
                     //change data
                     file.data = newData;
 
@@ -132,12 +143,12 @@ async function data(fastify, opts) {
                 }
                 else {
                     reply.code(403);
-                    return { info: "Permission Denied" };
+                    return new Error("Permission Denied");
                 }
             }
 
             reply.code(404);
-            return { info: "Key not found" };
+            return new Error("Key not found");
         }
     });
 
@@ -145,12 +156,13 @@ async function data(fastify, opts) {
     fastify.route({
         method: "DELETE",
         path: "/data/:key",
+        schema: {
+            headers: { $ref: "authHeader" }
+        },
         handler: async (request, reply) => {
-            //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
-            //verify token and get decoded token payload
-            const jwtPayload = await fastify.verify(jwt);
-            const user = jwtPayload.email;
+            //user data from preValidation hook
+            const user = request.authUser.email;
+            const role = request.authUser.role;
 
             //requested key
             const reqKey = request.params.key;
@@ -164,7 +176,7 @@ async function data(fastify, opts) {
             //check file index
             if (fileIndex != -1) {
                 //check permission, owner or superuser
-                if (dbData[fileIndex].owner == user || jwtPayload.role == "su") {
+                if (dbData[fileIndex].owner == user || role == "su") {
                     //delete file
                     dbData.splice(fileIndex, 1);
 
@@ -175,12 +187,12 @@ async function data(fastify, opts) {
                 }
                 else {
                     reply.code(403);
-                    return { info: "Permission denied" };
+                    return new Error("Permission denied");
                 }
             }
 
             reply.code(404);
-            return { info: "Key not found" };
+            return new Error("Key not found");
         }
     });
 };

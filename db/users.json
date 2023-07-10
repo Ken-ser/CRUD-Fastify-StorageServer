@@ -1,14 +1,14 @@
 [
     {
-        "email": "example@gmail.com",
-        "password": "c79d74c3476e096c2495c538c4dc5302b81b457bfd3681c109b3aa08a0c83225",
-        "salt": "7587646c2b7351b2cacf53a61f08ded1",
+        "email": "user1@mail.com",
+        "password": "c312ccd3e1481fc87c582e3bfb61a751ad7657f71b30dd392ca26892a6422901",
+        "salt": "eb384d6d42520592a81e73c44287b9be",
         "role": "u"
     },
     {
-        "email": "admin",
-        "password": "7a1d0a78b9f08b8b70b1196f56e0d73e3afad587fa3b247b5e4bca5c6c5ba0f4",
-        "salt": "285673ee45585824a2d1c736bf39053e",
+        "email": "admin@mail.com",
+        "password": "d7a65b19ca8c4da9f7518621cec4365c27ecb124a7d4c3e054136cf110f7e790",
+        "salt": "06c6ff9c6264498e37e7a14bcc202401",
         "role": "su"
     }
 ]

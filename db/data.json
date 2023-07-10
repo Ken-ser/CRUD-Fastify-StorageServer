@@ -1,7 +1,12 @@
 [
     {
-        "key": "text.txt",
+        "key": "user1.txt",
         "data": "data",
-        "owner": "example@gmail.com"
+        "owner": "user1@mail.com"
+    },
+    {
+        "key": "admin.txt",
+        "data": "data",
+        "owner": "admin@mail.com"
     }
 ]

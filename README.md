@@ -7,7 +7,7 @@ Gli utenti si possono registrare con e-mail e password.
 
 Il server unisce la password ad un "salt" (valore randomico), calcola il digest dell'unione con un algoritmo di hash (es. SHA256) e lo salva, insieme al salt, in un file JSON ([**users.json**](#struttura-del-file-usersjson)). 
 
-In fase di login viene confrontato l'hash della password passata dal client e l’hash salvato in modo da verificare la correttezza della password.
+In fase di login viene confrontato l'hash della password passata dal client e l’hash salvato nel db in modo da verificare la correttezza della password.
 
 Se il login ha successo viene restituito un [**JWT**](#struttura-del-jwt).
 
@@ -19,21 +19,27 @@ Il server salva i dati inviati dal client in un file JSON ([**data.json**](#stru
 
 Ogni utente può accedere solo ai dati caricati da lui stesso.
 
-Esiste un utente con poteri di **superuser**, in grado di poter accedere e modificare i dati di tutti gli altri utenti. Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del [**JWT**](#struttura-del-jwt)).
+Esiste un utente con poteri di **superuser** ("su" role), in grado di poter accedere e modificare i dati di tutti gli altri utenti ("u" role). Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del [**JWT**](#struttura-del-jwt)).
 
 ### **Struttura del file users.json:**
+
+| Username | Password | role |
+| --- | --- | --- |
+| user1@mail.com | User101- | u |
+| admin@mail.com | Admin01- | su |
+
 ```json
 [
     {
-        "email": "example@gmail.com",
-        "password": "c79d74c3476e096c2495c538c4dc5302b81",
-        "salt": "7587646c2b73",
+        "email": "user1@mail.com",
+        "password": "c312ccd3e1481fc87c582e3bfb61a751ad765",
+        "salt": "eb384d6d42520592a81e73",
         "role": "u"
     },
     {
-        "email": "admin",
-        "password": "7a1d0a78b9f08b8b70b1196f56e0d73e3af",
-        "salt": "285673ee4558",
+        "email": "admin@mail.com",
+        "password": "d7a65b19ca8c4da9f7518621cec4365c27ecb",
+        "salt": "06c6ff9c6264498e37e7a1",
         "role": "su"
     }
 ]
@@ -43,21 +49,21 @@ Esiste un utente con poteri di **superuser**, in grado di poter accedere e modif
 ```json
 [
     {
-        "key": "text.txt",
+        "key": "user1.txt",
         "data": "data",
-        "owner": "example@gmail.com"
+        "owner": "user1@mail.com"
     },
     {
-        "key": "...",
-        "data": "...",
-        "owner": "..." 
+        "key": "admin.txt",
+        "data": "data",
+        "owner": "admin@mail.com"
     }
 ]
 ```
 
 ### **Struttura del JWT:**
 <sub>Token (example)</sub>
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9sZSI6InUiLCJpYXQiOjE2ODg1ODMxNjEsImV4cCI6MTY4ODU4Njc2MX0.64iYFRZA2QHGVQx-gKAJWYSDVzYBvY8FZvQt1KW9CXY
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQG1haWwuY29tIiwicm9sZSI6InN1IiwiaWF0IjoxNjg4OTgwODgxLCJleHAiOjE2ODg5ODgwODF9.Od0sCaP9hSzQ4LZAsU8EPFZmu3Eq8FAXDF7DFxYwIts
 
 <sub>Header</sub>
 ```json
@@ -69,10 +75,10 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImV4YW1wbGVAZ21haWwuY29tIiwicm9
 <sub>Payload</sub>
 ```json
 {
-    "email": "example@gmail.com",
-    "role": "u",
-    "iat": 1688583161,
-    "exp": 1688586761
+    "email": "admin@mail.com",
+    "role": "su",
+    "iat": 1688980881,
+    "exp": 1688988081
 }
 ```
 <sub>Signature</sub>
@@ -122,7 +128,7 @@ HMACSHA256(
 
 - | Method | Path | Description |
     | --- | --- | --- |
-    | DELETE | /delete | _Elimina l’utente legato al JWT inviato al server_ |
+    | *DELETE | /delete | _Elimina l’utente legato al JWT inviato al server_ |
 
     <sub>HTTP header</sub>
     ```
@@ -131,7 +137,7 @@ HMACSHA256(
 
 - | Method | Path | Description |
     | --- | --- | --- |
-    | POST | /data | _Carica dei dati nuovi_ |
+    | *POST | /data | _Carica dei dati nuovi_ |
 
     <sub>Request body</sub>
     ```json
@@ -143,7 +149,7 @@ HMACSHA256(
 
 - | Method | Path | Description |
     | --- | --- | --- |
-    | GET | /data/:key | _Ritorna i dati corrispondenti alla chiave_ |
+    | *GET | /data/:key | _Ritorna i dati corrispondenti alla chiave_ |
 
     <sub>Response body</sub>
     ```json
@@ -156,7 +162,7 @@ HMACSHA256(
 
 - | Method | Path | Description |
     | --- | --- | --- |
-    | PATCH | /data/:key | _Aggiorna i dati corrispondenti alla chiave_ |
+    | *PATCH | /data/:key | _Aggiorna i dati corrispondenti alla chiave_ |
 
     <sub>Request body</sub>
     ```json
@@ -175,7 +181,7 @@ HMACSHA256(
     
 - | Method | Path | Description |
     | --- | --- | --- |
-    | DELETE | /data/:key | _Elimina i dati corrispondenti alla chiave_ |
+    | *DELETE | /data/:key | _Elimina i dati corrispondenti alla chiave_ |
 
 &emsp;<sub>(Il simbolo * indica che l’API è protetta)</sub>
 
@@ -185,5 +191,6 @@ HMACSHA256(
 - fluent-json-schema
 - jsonwebtoken
 - node-forge
+- fs/promises
 
 

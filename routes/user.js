@@ -7,6 +7,9 @@ async function user(fastify, opts) {
     fastify.route({
         method: "POST",
         path: "/register",
+        schema: {
+            body: { $ref: "credentials" }
+        },
         handler: async (request, reply) => {
             const email = request.body.email;
 
@@ -16,7 +19,7 @@ async function user(fastify, opts) {
             //check if email is available
             if (jsonUsers.find(user => user.email == email)) {
                 reply.code(409);
-                return { info: "Email already used" };
+                return new Error("Email already used");
             }
 
             //Generate salt
@@ -47,6 +50,12 @@ async function user(fastify, opts) {
     fastify.route({
         method: "POST",
         path: "/login",
+        schema: {
+            body: { $ref: "credentials" },
+            response: {
+                "2xx": { $ref: "repSignin" }
+            }
+        },
         handler: async (request, reply) => {
             const email = request.body.email;
             const password = request.body.password;
@@ -80,7 +89,7 @@ async function user(fastify, opts) {
             }
 
             reply.code(401);
-            return { info: "Wrong email or password" };
+            return new Error("Wrong email or password");
         }
     });
 
@@ -88,33 +97,22 @@ async function user(fastify, opts) {
     fastify.route({
         method: "DELETE",
         path: "/delete",
+        schema: {
+            headers: { $ref: "authHeader" }
+        },
         handler: async (request, reply) => {
-            //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization.split(" ")[1];
-            //verify token and get decoded token payload
-            const jwtPayload = await fastify.verify(jwt);
+            //read and JSON.parse users.json
+            const dbUsers = JSON.parse(await FS.readFile("./db/users.json"));
 
-            //read and JSON.parse file
-            const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
+            //delete user
+            dbUsers.splice(request.authUser.dbIndex, 1);
+            //write entire file
+            await FS.writeFile("./db/users.json", JSON.stringify(dbUsers, null, 4));
 
-            //find user index
-            const userIndex = jsonUsers.findIndex(user => user.email == jwtPayload.email);
-            //match
-            if (userIndex != -1) {
-                //delete user
-                jsonUsers.splice(userIndex, 1);
-                //write entire file
-                await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
-
-                return {
-                    info: "User deleted",
-                    email: jwtPayload.email
-                };
-            }
-
-            //the token is valid but no user was found
-            reply.code(401);
-            return { info: "Strange token" };
+            return {
+                info: "User deleted",
+                email: request.authUser.email
+            };
         }
     });
 };
