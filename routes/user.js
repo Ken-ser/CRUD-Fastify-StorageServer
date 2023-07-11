@@ -14,10 +14,10 @@ async function user(fastify, opts) {
             const email = request.body.email;
 
             //read and JSON.parse file
-            const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
+            const dbUsers = JSON.parse(await FS.readFile("./db/users.json"));
 
             //check if email is available
-            if (jsonUsers.find(user => user.email == email)) {
+            if (dbUsers.find(user => user.email == email)) {
                 reply.code(409);
                 return new Error("Email already used");
             }
@@ -36,10 +36,10 @@ async function user(fastify, opts) {
             //add "role" key with "u" value 
             request.body.role = "u";
             //add user
-            jsonUsers.splice(0, 0, request.body);
+            dbUsers.splice(0, 0, request.body);
 
             //write entire file
-            await FS.writeFile("./db/users.json", JSON.stringify(jsonUsers, null, 4));
+            await FS.writeFile("./db/users.json", JSON.stringify(dbUsers, null, 4));
 
             reply.code(201);
             return { info: "Signed up" };
@@ -61,10 +61,10 @@ async function user(fastify, opts) {
             const password = request.body.password;
 
             //read and JSON.parse file
-            const jsonUsers = JSON.parse(await FS.readFile("./db/users.json"));
+            const dbUsers = JSON.parse(await FS.readFile("./db/users.json"));
 
             //search user
-            for (const user of jsonUsers) {
+            for (const user of dbUsers) {
                 if (user.email == email) {
                     //Generate digest
                     const hashInst = NF.md.sha256.create();
@@ -80,7 +80,7 @@ async function user(fastify, opts) {
                             info: "Signed in",
                             access_token: token,
                             token_type: "JWT",
-                            expires_in: "1h"
+                            expires_in: fastify.jwtConf.signOpt.expiresIn
                         };
                     }
                     else
@@ -108,6 +108,9 @@ async function user(fastify, opts) {
             dbUsers.splice(request.authUser.dbIndex, 1);
             //write entire file
             await FS.writeFile("./db/users.json", JSON.stringify(dbUsers, null, 4));
+
+            //delete user's files
+            await fastify.deleteFilesByUser(request.authUser.email)
 
             return {
                 info: "User deleted",
