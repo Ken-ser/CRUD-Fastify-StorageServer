@@ -21,6 +21,8 @@ Ogni utente può accedere solo ai dati caricati da lui stesso.
 
 Esiste un utente con poteri di **superuser** ("su" role), in grado di poter accedere e modificare i dati di tutti gli altri utenti ("u" role). Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del [**JWT**](#struttura-del-jwt)).
 
+Quando un utente elimina il proprio account vengono eliminati anche i dati caricati dallo stesso presenti nel db ([**data.json**](#struttura-del-file-datajson)).
+
 ### **Struttura del file users.json:**
 
 | Username | Password | role |

@@ -1,23 +1,14 @@
 import FP from "fastify-plugin"
 import JWT from "jsonwebtoken"
+import NF from "node-forge"
 
 async function security(fastify, opts) {
 
-    //attach jwtConf array to the server instance
-    fastify.decorate("jwtConf",
-        {
-            secret: "Unimi",
-            signOpt: {
-                algorithm: "HS256",
-                expiresIn: 7200 //7200s -> 2h
-            }
-        }
-    )
-
     //attach method sign to the server instance
     fastify.decorate("sign", sign)
-
     fastify.decorate("verify", verify)
+    fastify.decorate("getSalt", getSalt)
+    fastify.decorate("getHash", getHash)
 
     async function sign(payload) {
         const token = JWT.sign(payload, fastify.jwtConf.secret, fastify.jwtConf.signOpt)
@@ -28,7 +19,23 @@ async function security(fastify, opts) {
         const payload = JWT.verify(token, fastify.jwtConf.secret)
         return payload
     }
-    
+
+    //sha256
+    async function getHash(str) {
+        //generate hash
+        const hashInst = NF.md.sha256.create();
+        hashInst.update(str);
+
+        return hashInst.digest().toHex()
+    }
+
+    async function getSalt() {
+        //Generate salt
+        const saltBytes = NF.random.getBytesSync(16);
+
+        return NF.util.bytesToHex(saltBytes);
+    }
+
     //check verify token and check if user is registered
     fastify.addHook("preValidation", async function (request, reply) {
         if (request.routerPath === "/delete" || request.routerPath === "/data/:key" || request.routerPath === "/data") {

@@ -29,6 +29,24 @@ const fastify = Fastify({
     }
 });
 
+//attach db paths to the server instance
+fastify.decorate("dbPaths",
+    {
+        dbUsers: "./db/users.json",
+        dbData: "./db/data.json"
+    }
+)
+//attach jwt configuration options to the server instance
+fastify.decorate("jwtConf",
+    {
+        secret: "Unimi",
+        signOpt: {
+            algorithm: "HS256",
+            expiresIn: 7200 //7200s -> 2h
+        }
+    }
+)
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

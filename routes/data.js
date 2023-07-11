@@ -22,7 +22,7 @@ async function data(fastify, opts) {
             const reqKey = request.params.key;
 
             //read and JSON.parse data.json
-            const dbData = JSON.parse(await FS.readFile("./db/data.json"));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
 
             //get file
             const file = dbData.find(file => file.key == reqKey);
@@ -72,7 +72,7 @@ async function data(fastify, opts) {
             }
 
             //read and JSON.parse data.json
-            const dbData = JSON.parse(await FS.readFile("./db/data.json"));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
 
             //check if key is already used
             const file = dbData.find(file => file.key === bodyData.key);
@@ -87,7 +87,7 @@ async function data(fastify, opts) {
             dbData.splice(0, 0, bodyData);
 
             //write entire file
-            await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
+            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4));
 
             reply.code(201);
             return { info: "Data stored" };
@@ -122,7 +122,7 @@ async function data(fastify, opts) {
             }
 
             //read and JSON-parse data.json
-            const dbData = JSON.parse(await FS.readFile("./db/data.json"));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
 
             //check if file exists
             const file = dbData.find(file => file.key === reqKey);
@@ -133,7 +133,7 @@ async function data(fastify, opts) {
                     file.data = newData;
 
                     //write entire file
-                    await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
+                    await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4));
 
                     return {
                         info: "Data patched",
@@ -168,7 +168,7 @@ async function data(fastify, opts) {
             const reqKey = request.params.key;
 
             //read and JSON-parse data.json
-            const dbData = JSON.parse(await FS.readFile("./db/data.json"));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
 
             //get file index
             const fileIndex = dbData.findIndex(file => file.key === reqKey);
@@ -181,7 +181,7 @@ async function data(fastify, opts) {
                     dbData.splice(fileIndex, 1);
 
                     //write entire file
-                    await FS.writeFile("./db/data.json", JSON.stringify(dbData, null, 4));
+                    await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4));
 
                     return { info: "Data deleted" };
                 }
