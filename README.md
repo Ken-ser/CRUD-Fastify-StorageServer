@@ -7,7 +7,7 @@ Gli utenti si possono registrare con e-mail e password.
 
 Il server unisce la password ad un "salt" (valore randomico), calcola il digest dell'unione con un algoritmo di hash (es. SHA256) e lo salva, insieme al salt, in un file JSON ([**users.json**](#struttura-del-file-usersjson)). 
 
-In fase di login viene confrontato l'hash della password passata dal client e l’hash salvato nel db in modo da verificare la correttezza della password.
+In fase di login viene confrontato l'hash della password inviata dal client e l’hash salvato nel DB in modo da verificare la correttezza della password.
 
 Se il login ha successo viene restituito un [**JWT**](#struttura-del-jwt).
 
@@ -21,7 +21,7 @@ Ogni utente può accedere solo ai dati caricati da lui stesso.
 
 Esiste un utente con poteri di **superuser** ("su" role), in grado di poter accedere e modificare i dati di tutti gli altri utenti ("u" role). Per gestire questa casistica viene sfruttato il JWT per includere un **ruolo** (parametro "role" nel payload del [**JWT**](#struttura-del-jwt)).
 
-Quando un utente elimina il proprio account vengono eliminati anche i dati caricati dallo stesso presenti nel db ([**data.json**](#struttura-del-file-datajson)).
+Quando un utente elimina il proprio account vengono eliminati anche i dati caricati dallo stesso presenti nel DB ([**data.json**](#struttura-del-file-datajson)).
 
 ### **Struttura del file users.json:**
 
@@ -195,4 +195,12 @@ HMACSHA256(
 - node-forge
 - fs/promises
 
-
+### **Come avviare il server**
+1. Scaricare il progetto tramite [**Git**](https://git-scm.com/) o tramite l'interfaccia di GitHub
+2. Installare [**Node.js**](https://nodejs.org/en/download)
+3. Aprire un terminale nella cartella del progetto (CRUD-Fastify-StorageServer-main)
+4. (opzionale) Installare [**nodemon**](https://nodemon.io/): permette di riavviare il server automaticamente ogni volta che il codice viene modificato
+5. Installare il modulo fastify: `npm install fastify`
+6. Avviare il server
+   - Tramite nodemon: `nodemon .\server.js`
+   - Tramite Node.js: `node .\server.js`
