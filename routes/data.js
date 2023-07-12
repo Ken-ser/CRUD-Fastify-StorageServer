@@ -15,17 +15,17 @@ async function data(fastify, opts) {
         },
         handler: async (request, reply) => {
             //user data from preValidation hook
-            const user = request.authUser.email;
-            const role = request.authUser.role;
+            const user = request.authUser.email
+            const role = request.authUser.role
 
             //get key
-            const reqKey = request.params.key;
+            const reqKey = request.params.key
 
             //read and JSON.parse data.json
-            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData))
 
             //get file
-            const file = dbData.find(file => file.key == reqKey);
+            const file = dbData.find(file => file.key == reqKey)
 
             //check file existence
             fastify.assert(file, 404, "Key not found")
@@ -40,9 +40,9 @@ async function data(fastify, opts) {
                 info: "Data found",
                 key: file.key,
                 data: file.data
-            };
+            }
         }
-    });
+    })
 
     //post key-data
     fastify.route({
@@ -54,10 +54,10 @@ async function data(fastify, opts) {
         },
         handler: async (request, reply) => {
             //user data from preValidation hook
-            const user = request.authUser.email;
+            const user = request.authUser.email
 
             //get body already parsed by fastify
-            const bodyData = request.body;
+            const bodyData = request.body
 
             //check valid base64 string
             fastify.assert(
@@ -66,7 +66,7 @@ async function data(fastify, opts) {
                 , "Data must be base64 string")
 
             //read and JSON.parse data.json
-            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData))
 
             //check if key is already used
             fastify.assert(
@@ -75,17 +75,17 @@ async function data(fastify, opts) {
                 , "Key already used")
 
             //add owner to new file
-            bodyData.owner = user;
+            bodyData.owner = user
             //add file
-            dbData.splice(0, 0, bodyData);
+            dbData.splice(0, 0, bodyData)
 
             //write entire file
-            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4));
+            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
 
-            reply.code(201);
-            return { info: "Data stored" };
+            reply.code(201)
+            return { info: "Data stored" }
         }
-    });
+    })
 
     //patch data by key
     fastify.route({
@@ -100,13 +100,13 @@ async function data(fastify, opts) {
         },
         handler: async (request, reply) => {
             //user data from preValidation hook
-            const user = request.authUser.email;
-            const role = request.authUser.role;
+            const user = request.authUser.email
+            const role = request.authUser.role
 
             //get body already parsed by fastify
-            const newData = request.body.data;
+            const newData = request.body.data
             //get key
-            const reqKey = request.params.key;
+            const reqKey = request.params.key
 
             //check valid base64 string
             fastify.assert(
@@ -115,10 +115,10 @@ async function data(fastify, opts) {
                 , "Data must be base64 string")
 
             //read and JSON-parse data.json
-            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData))
 
             //check if file exists
-            const file = dbData.find(file => file.key === reqKey);
+            const file = dbData.find(file => file.key === reqKey)
             fastify.assert(file, 404, "Key not found")
 
             //check permission, owner or superuser
@@ -128,18 +128,18 @@ async function data(fastify, opts) {
                 , "Permission denied")
 
             //change data
-            file.data = newData;
+            file.data = newData
 
             //write entire file
-            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4));
+            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
 
             return {
                 info: "Data patched",
                 key: file.key,
                 data: file.data
-            };
+            }
         }
-    });
+    })
 
     //delete data by key
     fastify.route({
@@ -150,17 +150,17 @@ async function data(fastify, opts) {
         },
         handler: async (request, reply) => {
             //user data from preValidation hook
-            const user = request.authUser.email;
-            const role = request.authUser.role;
+            const user = request.authUser.email
+            const role = request.authUser.role
 
             //requested key
-            const reqKey = request.params.key;
+            const reqKey = request.params.key
 
             //read and JSON-parse data.json
-            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData));
+            const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData))
 
             //get file index
-            const fileIndex = dbData.findIndex(file => file.key === reqKey);
+            const fileIndex = dbData.findIndex(file => file.key === reqKey)
 
             //check file index
             fastify.assert(fileIndex != -1, 404, "key not found")
@@ -171,14 +171,14 @@ async function data(fastify, opts) {
                 , "Permission denied")
 
             //delete file
-            dbData.splice(fileIndex, 1);
+            dbData.splice(fileIndex, 1)
 
             //write entire file
-            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4));
+            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
 
-            return { info: "Data deleted" };
+            return { info: "Data deleted" }
         }
-    });
-};
+    })
+}
 
-export default FP(data);
+export default FP(data)

@@ -23,17 +23,17 @@ async function security(fastify, opts) {
     //sha256
     async function getHash(str) {
         //generate hash
-        const hashInst = NF.md.sha256.create();
-        hashInst.update(str);
+        const hashInst = NF.md.sha256.create()
+        hashInst.update(str)
 
         return hashInst.digest().toHex()
     }
 
     async function getSalt() {
         //Generate salt
-        const saltBytes = NF.random.getBytesSync(16);
+        const saltBytes = NF.random.getBytesSync(16)
 
-        return NF.util.bytesToHex(saltBytes);
+        return NF.util.bytesToHex(saltBytes)
     }
 
     //check verify token and check if user is registered
@@ -45,18 +45,18 @@ async function security(fastify, opts) {
             fastify.assert(request.headers.authorization, 400, "JWT must be provided")
             
             //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization.split(" ")[1];
+            const jwt = request.headers.authorization.split(" ")[1]
 
-            let jwtPayload;
+            let jwtPayload
             try {
                 //verify token
-                jwtPayload = await fastify.verify(jwt);
+                jwtPayload = await fastify.verify(jwt)
             } catch (error) {
                 throw fastify.httpErrors.badRequest(error)
             }
 
             //check if user exists
-            const userIndex = await fastify.getUserIndex(jwtPayload.email);
+            const userIndex = await fastify.getUserIndex(jwtPayload.email)
             fastify.assert(userIndex != -1, 401, "User not registered")
 
             //put user token payload info in request.authUser
