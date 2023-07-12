@@ -100,7 +100,7 @@ async function data(fastify, opts) {
         path: "/data/:key",
         schema: {
             headers: { $ref: "authHeader" },
-            body: S.object().prop("data", S.ref("file#/properties/data")).required(),
+            body: S.object().maxProperties(1).prop("data", S.ref("file#/properties/data")).required(),
             response: {
                 "2xx": { $ref: "repGetData" }
             }
