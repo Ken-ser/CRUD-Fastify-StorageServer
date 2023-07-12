@@ -38,30 +38,32 @@ async function security(fastify, opts) {
 
     //check verify token and check if user is registered
     fastify.addHook("preValidation", async function (request, reply) {
-        if (request.routerPath === "/delete" || request.routerPath === "/data/:key" || request.routerPath === "/data") {
+        if (request.routerPath === "/delete"
+            || request.routerPath === "/data/:key"
+            || request.routerPath === "/data") {
+            
+            fastify.assert(request.headers.authorization, 400, "JWT must be provided")
+            
             //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
+            const jwt = request.headers.authorization.split(" ")[1];
+
             let jwtPayload;
             try {
                 //verify token
                 jwtPayload = await fastify.verify(jwt);
             } catch (error) {
-                reply.code(400);
-                throw new Error(error);
+                throw fastify.httpErrors.badRequest(error)
             }
+
             //check if user exists
             const userIndex = await fastify.getUserIndex(jwtPayload.email);
-            if (userIndex != -1) {
-                //put user token payload info in request.authUser
-                request.authUser = {
-                    dbIndex: userIndex,
-                    email: jwtPayload.email,
-                    role: jwtPayload.role
-                }
-            }
-            else {
-                reply.code(401);
-                throw new Error("User not registered")
+            fastify.assert(userIndex != -1, 401, "User not registered")
+
+            //put user token payload info in request.authUser
+            request.authUser = {
+                dbIndex: userIndex,
+                email: jwtPayload.email,
+                role: jwtPayload.role
             }
         }
     })

@@ -4,6 +4,7 @@ import Fastify from "fastify"
 import AutoLoad from "@fastify/autoload"
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
+import FSensible from "@fastify/sensible"
 
 const fastify = Fastify({
     logger: {
@@ -50,6 +51,7 @@ fastify.decorate("jwtConf",
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+fastify.register(FSensible);
 //loads plugins and routes folders
 fastify.register(AutoLoad, {
     dir: join(__dirname, "routes")
