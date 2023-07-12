@@ -23,34 +23,34 @@ async function security(fastify, opts) {
     //sha256
     async function getHash(str) {
         //generate hash
-        const hashInst = NF.md.sha256.create();
-        hashInst.update(str);
+        const hashInst = NF.md.sha256.create()
+        hashInst.update(str)
 
         return hashInst.digest().toHex()
     }
 
     async function getSalt() {
         //Generate salt
-        const saltBytes = NF.random.getBytesSync(16);
+        const saltBytes = NF.random.getBytesSync(16)
 
-        return NF.util.bytesToHex(saltBytes);
+        return NF.util.bytesToHex(saltBytes)
     }
 
     //check verify token and check if user is registered
     fastify.addHook("preValidation", async function (request, reply) {
         if (request.routerPath === "/delete" || request.routerPath === "/data/:key" || request.routerPath === "/data") {
             //get auth header, split by " ", get pos. 1 string
-            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null;
-            let jwtPayload;
+            const jwt = request.headers.authorization ? request.headers.authorization.split(" ")[1] : null
+            let jwtPayload
             try {
                 //verify token
-                jwtPayload = await fastify.verify(jwt);
+                jwtPayload = await fastify.verify(jwt)
             } catch (error) {
-                reply.code(400);
-                throw new Error(error);
+                reply.code(400)
+                throw new Error(error)
             }
             //check if user exists
-            const userIndex = await fastify.getUserIndex(jwtPayload.email);
+            const userIndex = await fastify.getUserIndex(jwtPayload.email)
             if (userIndex != -1) {
                 //put user token payload info in request.authUser
                 request.authUser = {
@@ -60,7 +60,7 @@ async function security(fastify, opts) {
                 }
             }
             else {
-                reply.code(401);
+                reply.code(401)
                 throw new Error("User not registered")
             }
         }

@@ -17,17 +17,17 @@ const fastify = Fastify({
     },
     //defines custom schemaError response
     schemaErrorFormatter: (errors, dataVar) => {
-        console.log(errors);
+        console.log(errors)
         switch (errors[0].instancePath) {
             case "/password":
-                return new Error("Password must contain minimum 8 characters, at least one upper case letter, one lower case letter, one number and one special character (#?!@$%^&*-)");
+                return new Error("Password must contain minimum 8 characters, at least one upper case letter, one lower case letter, one number and one special character (#?!@$%^&*-)")
             case "/email":
-                return new Error("Invalid email");
+                return new Error("Invalid email")
             default:
-                return new Error(errors[0].message);
+                return new Error(errors[0].message)
         }
     }
-});
+})
 
 //attach db paths to the server instance
 fastify.decorate("dbPaths",
@@ -47,21 +47,21 @@ fastify.decorate("jwtConf",
     }
 )
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 //loads plugins and routes folders
 fastify.register(AutoLoad, {
     dir: join(__dirname, "routes")
-});
+})
 fastify.register(AutoLoad, {
     dir: join(__dirname, "plugins")
-});
+})
 
 // Run the server
 try {
-    await fastify.listen({ port: 3000, host: "127.0.0.1" });
+    await fastify.listen({ port: 3000, host: "127.0.0.1" })
 } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
+    fastify.log.error(err)
+    process.exit(1)
 }
