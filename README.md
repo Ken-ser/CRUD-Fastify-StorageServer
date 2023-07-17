@@ -23,6 +23,12 @@ Esiste un utente con poteri di **superuser** ("su" role), in grado di poter acce
 
 Quando un utente elimina il proprio account vengono eliminati anche i dati caricati dallo stesso presenti nel DB ([**data.json**](#struttura-del-file-datajson)).
 
+### **Rate limiting**
+
+Il rate limiting è implementato sfruttando il plugin fastify-rate-limit ed **è applicato a tutte le route**.
+
+Oltre alle richieste **limita anche le risposte 404**, aiutando a contrastare lo URL Scanning.
+
 ### **Struttura del file users.json:**
 
 | Username | Password | role |
@@ -190,6 +196,8 @@ HMACSHA256(
 ### **Plugin impiegati**:
 - fastify-plugin
 - fastify-autoload 
+- fastify-rate-limit
+- fastify-sensible
 - fluent-json-schema
 - jsonwebtoken
 - node-forge

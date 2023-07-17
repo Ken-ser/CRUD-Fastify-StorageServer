@@ -1,4 +1,3 @@
-import FP from "fastify-plugin"
 import FS from "fs/promises"
 import { S } from "fluent-json-schema"
 
@@ -27,26 +26,20 @@ async function data(fastify, opts) {
             //get file
             const file = dbData.find(file => file.key == reqKey)
 
-            //if file exists
-            if (file) {
-                //check permission, owner or super user
-                if (user == file.owner || role == "su") {
-                    return {
-                        info: "Data found",
-                        key: file.key,
-                        data: file.data
-                    }
-                }
-                else {
-                    reply.code(403)
-                    return new Error("Permission denied")
-                }
-            }
-            else {
-                reply.code(404)
-                return new Error("Key not found")
-            }
+            //check file existence
+            fastify.assert(file, 404, "Key not found")
 
+            //check permission, owner or super user
+            fastify.assert(
+                user == file.owner || role == "su"
+                , 403
+                , "Permission denied")
+
+            return {
+                info: "Data found",
+                key: file.key,
+                data: file.data
+            }
         }
     })
 
@@ -66,20 +59,19 @@ async function data(fastify, opts) {
             const bodyData = request.body
 
             //check valid base64 string
-            if (! await fastify.isBase64(bodyData.data)) {
-                reply.code(400)
-                return new Error("Data must be base64 string")
-            }
+            fastify.assert(
+                await fastify.isBase64(bodyData.data)
+                , 400
+                , "Data must be base64 string")
 
             //read and JSON.parse data.json
             const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData))
 
             //check if key is already used
-            const file = dbData.find(file => file.key === bodyData.key)
-            if (file) {
-                reply.code(409)
-                return new Error("Key already used")
-            }
+            fastify.assert(
+                !dbData.find(file => file.key === bodyData.key)
+                , 409
+                , "Key already used")
 
             //add owner to new file
             bodyData.owner = user
@@ -116,39 +108,35 @@ async function data(fastify, opts) {
             const reqKey = request.params.key
 
             //check valid base64 string
-            if (! await fastify.isBase64(newData)) {
-                reply.code(400)
-                return new Error("Data must be base64 string")
-            }
+            fastify.assert(
+                await fastify.isBase64(newData)
+                , 400
+                , "Data must be base64 string")
 
             //read and JSON-parse data.json
             const dbData = JSON.parse(await FS.readFile(fastify.dbPaths.dbData))
 
             //check if file exists
             const file = dbData.find(file => file.key === reqKey)
-            if (file) {
-                //check permission, owner or superuser
-                if (file.owner == user || role == "su") {
-                    //change data
-                    file.data = newData
+            fastify.assert(file, 404, "Key not found")
 
-                    //write entire file
-                    await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
+            //check permission, owner or superuser
+            fastify.assert(
+                file.owner == user || role == "su"
+                , 403
+                , "Permission denied")
 
-                    return {
-                        info: "Data patched",
-                        key: file.key,
-                        data: file.data
-                    }
-                }
-                else {
-                    reply.code(403)
-                    return new Error("Permission Denied")
-                }
+            //change data
+            file.data = newData
+
+            //write entire file
+            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
+
+            return {
+                info: "Data patched",
+                key: file.key,
+                data: file.data
             }
-
-            reply.code(404)
-            return new Error("Key not found")
         }
     })
 
@@ -174,27 +162,22 @@ async function data(fastify, opts) {
             const fileIndex = dbData.findIndex(file => file.key === reqKey)
 
             //check file index
-            if (fileIndex != -1) {
-                //check permission, owner or superuser
-                if (dbData[fileIndex].owner == user || role == "su") {
-                    //delete file
-                    dbData.splice(fileIndex, 1)
+            fastify.assert(fileIndex != -1, 404, "key not found")
+            //check permission, owner or superuser
+            fastify.assert(
+                dbData[fileIndex].owner == user || role == "su"
+                , 403
+                , "Permission denied")
 
-                    //write entire file
-                    await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
+            //delete file
+            dbData.splice(fileIndex, 1)
 
-                    return { info: "Data deleted" }
-                }
-                else {
-                    reply.code(403)
-                    return new Error("Permission denied")
-                }
-            }
+            //write entire file
+            await FS.writeFile(fastify.dbPaths.dbData, JSON.stringify(dbData, null, 4))
 
-            reply.code(404)
-            return new Error("Key not found")
+            return { info: "Data deleted" }
         }
     })
 }
 
-export default FP(data)
+export default data

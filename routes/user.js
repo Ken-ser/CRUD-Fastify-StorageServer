@@ -1,4 +1,3 @@
-import FP from "fastify-plugin"
 import FS from "fs/promises"
 
 async function user(fastify, opts) {
@@ -16,10 +15,10 @@ async function user(fastify, opts) {
             const dbUsers = JSON.parse(await FS.readFile(fastify.dbPaths.dbUsers))
 
             //check if email is available
-            if (dbUsers.find(user => user.email == email)) {
-                reply.code(409)
-                return new Error("Email already used")
-            }
+            fastify.assert(
+                !dbUsers.find(user => user.email == email)
+                , 409
+                , "Email already used")
 
             //Generate salt and "salted" hassh
             const salt = await fastify.getSalt()
@@ -58,23 +57,22 @@ async function user(fastify, opts) {
 
             //search user
             const user = dbUsers.find(user => user.email == email)
-            if (user) {
-                //generate hash and check password
-                if (await fastify.getHash(password + user.salt) == user.password) {
-                    //create token
-                    const token = await fastify.sign({ email: email, role: user.role })
+            fastify.assert(user, 401, "User not registered")
+            //generate hash and check password
+            fastify.assert(
+                await fastify.getHash(password + user.salt) == user.password
+                , 401
+                , "Wrong email or password")
 
-                    return {
-                        info: "Signed in",
-                        access_token: token,
-                        token_type: "JWT",
-                        expires_in: fastify.jwtConf.signOpt.expiresIn
-                    }
-                }
+            //create token
+            const token = await fastify.sign({ email: email, role: user.role })
+
+            return {
+                info: "Signed in",
+                access_token: token,
+                token_type: "JWT",
+                expires_in: fastify.jwtConf.signOpt.expiresIn
             }
-
-            reply.code(401)
-            return new Error("Wrong email or password")
         }
     })
 
@@ -105,4 +103,4 @@ async function user(fastify, opts) {
     })
 }
 
-export default FP(user)
+export default user
