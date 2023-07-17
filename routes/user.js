@@ -1,4 +1,3 @@
-import FP from "fastify-plugin"
 import FS from "fs/promises"
 
 async function user(fastify, opts) {
@@ -104,4 +103,4 @@ async function user(fastify, opts) {
     })
 }
 
-export default FP(user)
+export default user

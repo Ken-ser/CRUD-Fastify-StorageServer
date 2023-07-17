@@ -85,7 +85,7 @@ fastify.setNotFoundHandler({
         timeWindow: 1000 * 60 //ms
     })
 }, function (request, reply) {
-    throw fastify.httpErrors.notFound("Route " + request.method + ":" + request.url + " not found")
+    throw fastify.httpErrors.notFound(`Route ${request.method}:${request.url} not found`)
 })
 
 //Run the server

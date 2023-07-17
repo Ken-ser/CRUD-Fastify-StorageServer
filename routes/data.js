@@ -1,4 +1,3 @@
-import FP from "fastify-plugin"
 import FS from "fs/promises"
 import { S } from "fluent-json-schema"
 
@@ -181,4 +180,4 @@ async function data(fastify, opts) {
     })
 }
 
-export default FP(data)
+export default data
