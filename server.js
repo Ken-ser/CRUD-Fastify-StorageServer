@@ -5,7 +5,6 @@ import AutoLoad from "@fastify/autoload"
 import { fileURLToPath } from "url"
 import { dirname, join } from "path"
 import FSensible from "@fastify/sensible"
-import RL from "@fastify/rate-limit"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -53,39 +52,12 @@ fastify.decorate("jwtConf",
 )
 
 fastify.register(FSensible)
-//add rate limiting
-await fastify.register(RL, {
-    global: true,
-    //continueExceeding: true,
-    max: 5,
-    timeWindow: 1000 * 60, //ms
-    errorResponseBuilder: function (request, context) {
-        return {
-            statusCode: 429,
-            error: "Too Many Requests",
-            message: "Rate limit exceeded",
-            maxRequests: context.max,
-            timeWindow: context.after,
-            expiresIn: context.ttl
-        }
-    }
-})
 //load plugins and routes folders
-fastify.register(AutoLoad, {
-    dir: join(__dirname, "routes")
-})
 fastify.register(AutoLoad, {
     dir: join(__dirname, "plugins")
 })
-
-//rate limit not found route to avoid path scan
-fastify.setNotFoundHandler({
-    preHandler: fastify.rateLimit({
-        max: 3,
-        timeWindow: 1000 * 60 //ms
-    })
-}, function (request, reply) {
-    throw fastify.httpErrors.notFound(`Route ${request.method}:${request.url} not found`)
+fastify.register(AutoLoad, {
+    dir: join(__dirname, "routes")
 })
 
 //Run the server
